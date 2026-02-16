@@ -12,16 +12,16 @@ struct ContentView: View {
         TabView {
             HomeView ()
                 .tabItem {
-                    Label("home", systemImage: "")
+                    Label("Home", systemImage: "")
                 }
             HistoryView ()
                 .tabItem {
                     Label("History", systemImage: "")
                 }
-//            SettingsView ()
-//                .tabItem {
-//                    Label("Settings", systemImage: "")
-//                }
+            SettingsView ()
+                .tabItem {
+                    Label("Setting", systemImage: "")
+                }
         }
     }
 }

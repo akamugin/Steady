@@ -11,12 +11,14 @@ struct WaterQuickAddView: View {
     @Environment(AppStore.self) private var store
 
     var body: some View {
-        HStack(spacing: 12) {
-            Button("+250ml") { store.addWater(ml: 250) }
-            Button("+500ml") { store.addWater(ml: 500) }
-            Spacer()
+        Button {
+            store.addWater(ml: 250)
+        } label: {
+            Image("water_icon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 72, height: 72)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.plain)
     }
 }
-
