@@ -12,17 +12,18 @@ struct ContentView: View {
         TabView {
             HomeView ()
                 .tabItem {
-                    Label("Home", systemImage: "")
+                    Label("Home", systemImage: "house.fill")
                 }
             HistoryView ()
                 .tabItem {
-                    Label("History", systemImage: "")
+                    Label("History", systemImage: "clock.arrow.circlepath")
                 }
             SettingsView ()
                 .tabItem {
-                    Label("Setting", systemImage: "")
+                    Label("Settings", systemImage: "gearshape.fill")
                 }
         }
+        .tint(Color(red: 0.24, green: 0.67, blue: 0.42))
     }
 }
 

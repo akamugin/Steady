@@ -18,10 +18,8 @@ struct CharacterHeaderView: View {
                 .frame(height: Self.imageHeight)
 
             VStack(spacing: 2) {
-                Text("Hi! Let's stay steady!")
-                    .font(.title3).bold()
-                Text("log a meal to help me grow")
-                    .foregroundStyle(.secondary)
+                Text("Hi, let's do this!")
+                    .font(.system(size: 25, weight: .black, design: .rounded))
             }
             .multilineTextAlignment(.center)
         }
