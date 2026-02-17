@@ -18,19 +18,25 @@ final class AppStore {
     var water: [WaterEntry] = []
 
     init() {
-        goals = recommendedGoals(for: userProfile)
+        if !loadState() {
+            goals = recommendedGoals(for: userProfile)
+            saveState()
+        }
     }
 
     func logMeal(name: String, calories: Int, protein: Int) {
         meals.insert(MealEntry(name: name, calories: calories, protein: protein, timestamp: .now), at: 0)
+        saveState()
     }
 
     func addWater(ml: Int) {
         water.insert(WaterEntry(ml: ml, timestamp: .now), at: 0)
+        saveState()
     }
 
     func removeWaterEntries(ids: Set<UUID>) {
         water.removeAll { ids.contains($0.id) }
+        saveState()
     }
 
     func updateMeal(id: UUID, name: String, calories: Int, protein: Int) {
@@ -38,17 +44,21 @@ final class AppStore {
         meals[index].name = name
         meals[index].calories = calories
         meals[index].protein = protein
+        saveState()
     }
 
     func updateWater(id: UUID, ml: Int) {
         guard let index = water.firstIndex(where: { $0.id == id }) else { return }
         water[index].ml = ml
+        saveState()
     }
 
     func updateUserProfile(_ profile: UserProfile) {
         userProfile = profile
-        guard !usesCustomGoals else { return }
-        goals = recommendedGoals(for: profile)
+        if !usesCustomGoals {
+            goals = recommendedGoals(for: profile)
+        }
+        saveState()
     }
 
     func updateGoals(calories: Int, protein: Int, waterMl: Int) {
@@ -58,11 +68,13 @@ final class AppStore {
             waterMl: max(waterMl, 0)
         )
         usesCustomGoals = true
+        saveState()
     }
 
     func resetGoalsToRecommended() {
         usesCustomGoals = false
         goals = recommendedGoals(for: userProfile)
+        saveState()
     }
 
     func recommendedGoals(for profile: UserProfile) -> Goals {
@@ -104,5 +116,53 @@ final class AppStore {
 
     var todayWaterMl: Int {
         water.filter { Calendar.current.isDateInToday($0.timestamp) }.reduce(0) { $0 + $1.ml }
+    }
+
+    private struct PersistedState: Codable {
+        var goals: Goals
+        var userProfile: UserProfile
+        var usesCustomGoals: Bool
+        var meals: [MealEntry]
+        var water: [WaterEntry]
+    }
+
+    private static var storageURL: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let directory = base.appendingPathComponent("Steady", isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory.appendingPathComponent("app-state.json")
+    }
+
+    private func saveState() {
+        let snapshot = PersistedState(
+            goals: goals,
+            userProfile: userProfile,
+            usesCustomGoals: usesCustomGoals,
+            meals: meals,
+            water: water
+        )
+
+        do {
+            let data = try JSONEncoder().encode(snapshot)
+            try data.write(to: Self.storageURL, options: .atomic)
+        } catch {
+            assertionFailure("Failed to save app state: \(error)")
+        }
+    }
+
+    private func loadState() -> Bool {
+        do {
+            let data = try Data(contentsOf: Self.storageURL)
+            let saved = try JSONDecoder().decode(PersistedState.self, from: data)
+            goals = saved.goals
+            userProfile = saved.userProfile
+            usesCustomGoals = saved.usesCustomGoals
+            meals = saved.meals
+            water = saved.water
+            return true
+        } catch {
+            return false
+        }
     }
 }
